@@ -13,8 +13,8 @@ POST {{baseUrl}}/sensors/
 Content-Type: application/json
 
 {
-  "name": "ESP32",
-  "description": "Датчик на кухне за холодильником"
+  "name": "ESP33",
+  "description": "Датчик в комнате с телевизором"
 }
 
 ###
@@ -31,15 +31,25 @@ Content-Type: application/json
 
 # добавление измерения
 POST {{baseUrl}}/measurements/
-Content-Type: application/json
+Content-Type: multipart/form-data; boundary=WebAppBoundary
 
-{
-  "sensor": 1,
-  "temperature": 22.3
-}
+--WebAppBoundary
+Content-Disposition: form-data; name="sensor"
+
+2
+--WebAppBoundary
+Content-Disposition: form-data; name="temperature"
+
+21
+--WebAppBoundary
+Content-Disposition: form-data; name="image"; filename="true_teleroom1.png"
+Content-Type: image/png
+
+< ./true_teleroom1.png
+--WebAppBoundary--
 
 ###
 
 # получение информации по датчику
-GET {{baseUrl}}/sensors/1/
+GET {{baseUrl}}/sensors/1/detail/
 Content-Type: application/json
