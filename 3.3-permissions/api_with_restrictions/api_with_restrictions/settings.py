@@ -76,7 +76,11 @@ TEMPLATES = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-    ]
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'user': '20/minute',
+        'anon': '10/minute'
+    }
 }
 
 WSGI_APPLICATION = 'api_with_restrictions.wsgi.application'
@@ -89,6 +93,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'netology_classified_ads',
+        'USER': 'postgres',
+        'PASSWORD': 'Fedia_38_2025',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
