@@ -56,8 +56,8 @@ def test_list_courses(client, course_factory):
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data) == len(courses)
     response_ids = {course['id'] for course in response.data}
-    excepted_ids = {course.id for course  in courses}
-    assert response_ids == excepted_ids 
+    expected_ids = {course.id for course  in courses}
+    assert response_ids == expected_ids 
         
         
 @pytest.mark.django_db
@@ -157,8 +157,8 @@ def test_course_with_students(client, course_factory, student_factory):
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data['students']) == len(students)
     response_student_ids = set(response.data['students'])
-    excepted_student_ids = {student.id for student in students}
-    assert response_student_ids == excepted_student_ids 
+    expected_student_ids = {student.id for student in students}
+    assert response_student_ids == expected_student_ids 
         
         
 @pytest.mark.django_db
