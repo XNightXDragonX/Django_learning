@@ -3,6 +3,7 @@ from django.conf import settings
 from model_bakery import baker
 from rest_framework import status
 from rest_framework.test import APIClient
+from rest_framework.reverse import reverse
 
 from students.models import Student, Course
 
@@ -31,8 +32,7 @@ def test_retrieve_course(client, course_factory):
        
     #Arrange
     course = course_factory()
-    url = f'/api/v1/courses/{course.id}/'
-    
+    url = reverse('course-detail', args=[course.id])
     #Act
     response =client.get(url)
     
@@ -47,7 +47,7 @@ def test_list_courses(client, course_factory):
     
     #Arrange
     courses = course_factory(_quantity=3)
-    url = '/api/v1/courses/'
+    url = reverse('courses-list')
     
     #Act
     response = client.get(url)
@@ -55,8 +55,9 @@ def test_list_courses(client, course_factory):
     #Assert
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data) == len(courses)
-    for i, course in enumerate(courses):
-        assert response.data[i]['id'] == course.id
+    response_ids = {course['id'] for course in response.data}
+    excepted_ids = {course.id for course  in courses}
+    assert response_ids == excepted_ids 
         
         
 @pytest.mark.django_db
@@ -65,7 +66,7 @@ def test_filter_course_by_id(client, course_factory):
     #Arrange
     courses = course_factory(_quantity=3)
     target_course = courses[1]
-    url = f'/api/v1/courses/?id={target_course.id}'
+    url = reverse('courses-list') + f'?id={target_course.id}'
     
     #Act
     response = client.get(url)
@@ -82,7 +83,7 @@ def test_filter_course_by_name(client, course_factory):
     #Arrange
     courses = course_factory(_quantity=3)
     target_course = courses[1]
-    url = f'/api/v1/courses/?name={target_course.name}'
+    url = reverse('courses-list') + f'?id={target_course.name}'
     
     #Act
     response = client.get(url)
@@ -97,11 +98,11 @@ def test_filter_course_by_name(client, course_factory):
 def test_create_course(client):
     
     #Arrange
-    url = '/api/v1/courses/'
+    url = reverse('courses-list')
     data = {'name': 'New Course'}
     
     #Act
-    response = client.post(url, data=data)
+    response = client.post(url, data=data, format='json')
     
     #Assert
     assert response.status_code == status.HTTP_201_CREATED
@@ -114,11 +115,11 @@ def test_update_course(client, course_factory):
     
     #Arrange
     course = course_factory()
-    url = f'/api/v1/courses/{course.id}/'
+    url = reverse('courses-detail', args=[course.id])
     data = {'name': 'Updated Name'}
     
     #Act
-    response = client.patch(url, data=data)
+    response = client.patch(url, data=data, format='json')
     
     #Assert
     assert response.status_code == status.HTTP_200_OK
@@ -131,7 +132,7 @@ def test_delete_course(client, course_factory):
     
     #Arrange
     course = course_factory()
-    url = f'/api/v1/courses/{course.id}/'
+    url = reverse('courses-detail', args=[course.id])
     
     #Act
     response = client.delete(url)
@@ -147,7 +148,7 @@ def test_course_with_students(client, course_factory, student_factory):
     #Arrange
     students = student_factory(_quantity=3)
     course = course_factory(students=students)
-    url = f'/api/v1/courses/{course.id}/'
+    url = reverse('courses-detail', args=[course.id])
     
     #Act
     response = client.get(url)
@@ -155,8 +156,9 @@ def test_course_with_students(client, course_factory, student_factory):
     #Assert
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data['students']) == len(students)
-    for i, student in enumerate(students):
-        assert response.data['students'][i] == student.id
+    response_student_ids = set(response.data['students'])
+    excepted_student_ids = {student.id for student in students}
+    assert response_student_ids == excepted_student_ids 
         
         
 @pytest.mark.django_db
@@ -173,7 +175,7 @@ def test_max_students_per_course(
     settings.MAX_STUDENTS_PER_COURSE = max_students
     students = student_factory(_quantity=student_count)
     student_ids = [student.id for student in students]
-    url = '/api/v1/courses/'
+    url = reverse('courses-list')
     data = {
         'name': 'Test Course',
         'students': student_ids
@@ -193,7 +195,7 @@ def test_add_students_to_existing_course(client, student_factory, course_factory
     students = student_factory(_quantity=2)
     course = course_factory(students=students)
     new_student = student_factory()
-    url = f'/api/v1/courses/{course.id}/'
+    url = reverse('courses-detail', args=[course.id])
     data = {
         'students': [student.id for student in students] + [new_student.id]
     }
